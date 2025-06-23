@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/CatsBot.iml" filepath="$PROJECT_DIR$/.idea/CatsBot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.avegus.FileService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.avegus.FileService.main.iml" />
     </modules>
   </component>
 </project>
