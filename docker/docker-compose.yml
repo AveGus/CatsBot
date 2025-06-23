@@ -1,0 +1,9 @@
+services:
+
+  kafka:
+    image: apache/kafka-native:4.0.0
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
