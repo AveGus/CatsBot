@@ -5,6 +5,7 @@ import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.KafkaProducerService;
 import com.avegus.telegramconnector.model.dto.CallbackQueryData;
 import com.avegus.telegramconnector.model.enums.BotState;
+import com.avegus.telegramconnector.model.enums.Captions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -29,7 +30,7 @@ public class MyCatsDeleteHandler implements MessageHandler {
 
         if (catId != null && !catId.isEmpty()) {
             kafkaProducer.sendDeleteCatRequest(userId.toString(), catId);
-            messageSender.sendMessage(userId, "Котик удален");
+            messageSender.sendMessage(userId, Captions.DELETED_ACTION);
             myCatsHandler.handle(update);
         } else {
             log.error("Invalid callback query with cat id");
