@@ -6,9 +6,6 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import java.io.File;
-import java.util.concurrent.CompletableFuture;
-
 import static com.avegus.telegramconnector.bot.sender.MessageSenderHelper.*;
 
 @Service
@@ -30,17 +27,6 @@ public class MessageSenderImpl implements MessageSender {
     }
 
     @Override
-    public void sendPhoto(Long userId, byte[] photo, String fileName) {
-        log.debug("Sending photo message to {}, fileName: {}", userId, fileName);
-
-        try {
-            telegramClient.execute(toSendPhoto(userId, photo, fileName));
-        } catch (Exception e) {
-            log.error("Error while sending message with photo {} to {}, ", fileName, userId, e);
-        }
-    }
-
-    @Override
     public void sendMarkup(Long userId, InlineKeyboardMarkup markup, String caption) {
         log.debug("Sending markup with text to {}, text {}", userId, caption);
 
@@ -49,10 +35,5 @@ public class MessageSenderImpl implements MessageSender {
         } catch (Exception e) {
             log.error("Error while sending markup with text {} to {}, ", caption, userId, e);
         }
-    }
-
-    @Override
-    public CompletableFuture<File> getFile(String fileId) {
-        return telegramClient.downloadFileAsync(fileId);
     }
 }

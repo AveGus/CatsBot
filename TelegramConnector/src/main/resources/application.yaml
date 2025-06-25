@@ -10,6 +10,3 @@ spring:
 bot:
   token: ${BOT_TOKEN}
   name: ${BOT_NAME:"Catzzz"}
-
-files:
-  tempDir: ${TEMP_FILES_DIR:"./"}

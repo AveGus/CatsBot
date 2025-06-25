@@ -5,6 +5,7 @@ import com.avegus.telegramconnector.broker.dto.Cat;
 import java.util.List;
 
 public interface KafkaConsumerService {
+
     void consumeCatList(String userId, List<Cat> cats);
     void consumeUserCats(String userId, List<Cat> cats);
     void consumeCatDeleted(String userId, String catId, boolean success);
