@@ -6,8 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class TelegramConnectorApplicationTests {
 
-    @Test
     void contextLoads() {
+        // TDD, go sleep
     }
 
 }

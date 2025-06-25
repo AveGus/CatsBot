@@ -1,0 +1,14 @@
+package com.avegus.telegramconnector.model.enums;
+
+public class Captions {
+
+    public static final String FAKE_CAT = "Представьте что это котик. У вашего котика %s лайков и %s дизлайков";
+    public static final String MY_CATS = "Вот список ваших котиков. Для детальной информации нажмите на кнопку и именем интересующего котика.";
+    public static final String DELETED_ACTION = "Котик удален";
+    public static final String MENU_CAPTION = "Это главное меню с котиками, тут ты можешь посмотреть своих, чужих и добавить своего";
+    public static final String REQUEST_PHOTO = "Пришли фото своего котика";
+    public static final String WEIRD_PHOTO = "Отправь одну фотографию, или вернись в главное меню";
+    public static final String PHOTO_SAVED_ASK_NAME = "Фото сохранено, теперь напиши имя котика";
+    public static final String WEIRD_CAT_NAME = "Пожалуйста, пришли название котика или вернись в главное меню";
+    public static final String CAT_SAVED = "Котик %s сохранен";
+}

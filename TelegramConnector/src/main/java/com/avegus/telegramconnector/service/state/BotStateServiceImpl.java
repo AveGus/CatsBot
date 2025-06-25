@@ -1,0 +1,40 @@
+package com.avegus.telegramconnector.service.state;
+
+import com.avegus.telegramconnector.model.User;
+import com.avegus.telegramconnector.repo.UserRepo;
+import com.avegus.telegramconnector.model.enums.BotState;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class BotStateServiceImpl implements BotStateService {
+
+    private final UserRepo userRepo;
+
+    @Override
+    public void updateState(Long userId, String username, BotState newState) {
+        var upsatedUser = userRepo.findById(userId)
+                .map(foundUser -> {
+                    foundUser.setState(newState.name());
+                    return foundUser;
+                })
+                .orElse(new User(userId, username, newState.name(), LocalDateTime.now()));
+        userRepo.save(upsatedUser);
+    }
+
+    @Override
+    public Optional<BotState> getCurrentState(Long userId) {
+        try {
+            return userRepo.findById(userId).map(user -> BotState.valueOf(user.getState()));
+        } catch (Exception e) {
+            log.error("Cannot fetch status of user {}, ", userId, e);
+            return Optional.empty();
+        }
+    }
+}
