@@ -153,4 +153,59 @@ public class InlineKeyboardFactory {
                 .keyboard(List.of(row1, row2))
                 .build();
     }
+
+    @SneakyThrows
+    public static InlineKeyboardMarkup backButton() {
+        var row1 = new InlineKeyboardRow();
+
+        row1.add(InlineKeyboardButton.builder()
+                .text("Назад")
+                .callbackData(
+                        om.writeValueAsString(
+                                new CallbackQueryData(BotState.MAIN_MENU, null)
+                        )
+                )
+                .build());
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(List.of(row1))
+                .build();
+    }
+
+    @SneakyThrows
+    public static InlineKeyboardMarkup photoUploadDesision() {
+        var row1 = new InlineKeyboardRow();
+        var row2 = new InlineKeyboardRow();
+
+        row1.add(InlineKeyboardButton.builder()
+                .text("Подтвердить")
+                .callbackData(
+                        om.writeValueAsString(
+                                new CallbackQueryData(BotState.ADD_CAT_ASK_NAME, null)
+                        )
+                )
+                .build());
+        row1.add(InlineKeyboardButton.builder()
+                .text("Повторить")
+                .callbackData(
+                        om.writeValueAsString(
+                                new CallbackQueryData(BotState.ADD_CAT, null)
+                        )
+                )
+                .build());
+
+
+        row2.add(InlineKeyboardButton.builder()
+                .text("Назад")
+                .callbackData(
+                        om.writeValueAsString(
+                                new CallbackQueryData(BotState.MAIN_MENU, null)
+                        )
+                )
+                .build());
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(List.of(row1, row2))
+                .build();
+    }
 }

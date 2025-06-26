@@ -3,6 +3,7 @@ package com.avegus.telegramconnector.bot.handler.addcat;
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.dto.UpdateData;
+import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Captions;
 import com.avegus.telegramconnector.service.state.BotStateService;
@@ -12,20 +13,23 @@ import org.springframework.stereotype.Service;
 
 import static com.avegus.telegramconnector.factory.InlineKeyboardFactory.backButton;
 
-// Asks photo
-@Slf4j
+// Sends name question
 @RequiredArgsConstructor
+@Slf4j
 @Service
-public class AddCatHandler implements MessageHandler {
-    private final MessageSender messageSender;
-    private final BotStateService stateService;
+public class AddCatAskNameHandler implements MessageHandler {
 
+    private final MessageSender messageSender;
+    private final BotStateService botStateService;
+
+    @Override
     public void handle(UpdateData update) {
-        stateService.updateState(update.getUsername(), update.getUserId(), BotState.ADD_CAT_ASK_PHOTO);
-        messageSender.sendMarkup(update.getUserId(), backButton(), Captions.REQUEST_PHOTO);
+        messageSender.sendMarkup(update.getUserId(), backButton(), Captions.PHOTO_SAVED_ASK_NAME);
+        botStateService.updateState(update.getUsername(), update.getUserId(), BotState.ADD_CAT_CONSUME_NAME);
     }
 
+    @Override
     public boolean canHandle(UpdateData update) {
-        return update.hasCallbackData() && update.getBotState() == BotState.ADD_CAT;
+        return update.getBotState() == BotState.ADD_CAT_ASK_NAME;
     }
 }

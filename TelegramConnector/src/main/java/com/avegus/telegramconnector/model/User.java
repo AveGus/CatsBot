@@ -1,5 +1,6 @@
 package com.avegus.telegramconnector.model;
 
+import com.avegus.telegramconnector.broker.dto.UpdateData;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -27,4 +28,13 @@ public class User {
 
     @Column(name = "created", nullable = false)
     private LocalDateTime created;
+
+    public static User from(Long userId, String username, String state) {
+        return new User(
+                userId,
+                username,
+                state,
+                LocalDateTime.now()
+        );
+    }
 }
