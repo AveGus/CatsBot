@@ -7,32 +7,32 @@ import org.springframework.stereotype.Service;
 public class KafkaProducerServiceImpl implements KafkaProducerService {
 
     @Override
-    public void sendLikeEvent(String userId, String catId) {
+    public void sendLikeEvent(String catId) {
 
     }
 
     @Override
-    public void sendDislikeEvent(String userId, String catId) {
+    public void sendDislikeEvent(String catId) {
 
     }
 
     @Override
-    public void requestRandomCat(String userId) {
+    public void requestRandomCat(Long userId) {
 
     }
 
     @Override
-    public void requestUserCats(String userId) {
+    public void requestUserCats(Long userId) {
 
     }
 
     @Override
-    public void requestUserCat(String userId, String catId) {
+    public void requestUserCat(Long userId, String catId) {
 
     }
 
     @Override
-    public void sendDeleteCatRequest(String userId, String catId) {
+    public void sendDeleteCatRequest(Long userId, String catId) {
 
     }
 

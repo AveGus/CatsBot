@@ -1,8 +1,9 @@
-package com.avegus.telegramconnector.bot.handler.addcat;
+package com.avegus.telegramconnector.bot.handler.common;
 
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.dto.UpdateData;
+import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Captions;
 import com.avegus.telegramconnector.service.state.BotStateService;
@@ -10,22 +11,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static com.avegus.telegramconnector.factory.InlineKeyboardFactory.backButton;
-
-// Asks photo
+@Service
 @Slf4j
 @RequiredArgsConstructor
-@Service
-public class AddCatHandler implements MessageHandler {
+public class AskNameHandler implements MessageHandler {
+
+    private final BotStateService botStateService;
     private final MessageSender messageSender;
-    private final BotStateService stateService;
 
     public void handle(UpdateData update) {
-        stateService.updateState(update.getUsername(), update.getUserId(), BotState.ADD_CAT_ASK_PHOTO);
-        messageSender.sendMarkup(update.getUserId(), backButton(), Captions.REQUEST_PHOTO);
+
+        botStateService.updateState(update.getUsername(), update.getUserId(), BotState.MAIN_MENU);
+        messageSender.sendMessage(update.getUserId(), String.format("Привет, %s!", update.getMessage()));
+        messageSender.sendMarkup(update.getUserId(), InlineKeyboardFactory.menuMarkup(), Captions.MENU_CAPTION);
     }
 
     public boolean canHandle(UpdateData update) {
-        return update.hasCallbackData() && update.getBotState() == BotState.ADD_CAT;
+        return update.hasMessage() && update.getBotState() == BotState.ASK_NAME;
     }
 }

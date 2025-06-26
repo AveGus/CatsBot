@@ -8,6 +8,6 @@ import java.util.Optional;
  * Manages User state
  */
 public interface BotStateService {
-    void updateState(Long userId, String username, BotState newState);
+    void updateState(String username, Long userId, BotState botState);
     Optional<BotState> getCurrentState(Long userId);
 }

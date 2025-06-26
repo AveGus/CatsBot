@@ -1,7 +1,7 @@
 package com.avegus.telegramconnector.bot;
 
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
-import com.avegus.telegramconnector.bot.sender.MessageSenderHelper;
+import com.avegus.telegramconnector.broker.dto.UpdateData;
 import com.avegus.telegramconnector.model.dto.CallbackQueryData;
 import com.avegus.telegramconnector.service.state.BotStateService;
 import com.avegus.telegramconnector.model.enums.BotState;
@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -28,72 +27,78 @@ public class TelegramFacadeImpl implements TelegramFacade {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Optional<BotApiMethodMessage> handleUpdate(Update update) {
+    public void handleUpdate(Update update) {
 
-        var state = getBotState(update);
+        var updateData = toUpdateData(update);
         for (MessageHandler handler : handlers) {
 
-            if (handler.canHandle(update, state)) {
-                handler.handle(update);
-                return Optional.empty();
+            if (handler.canHandle(updateData)) {
+                handler.handle(updateData);
             }
-        }
-
-        try {
-            Long userId;
-            if (update.hasMessage()) {
-                userId = update.getMessage().getFrom().getId();
-            } else {
-                userId = update.getCallbackQuery().getFrom().getId();
-            }
-
-            return Optional.of(
-                    MessageSenderHelper.toSendMessage(userId, "Meow")
-            );
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return Optional.empty();
         }
     }
 
     /**
-     * Create if not exists and get bot state for user
+     * Fill data for handlers. BotState may come in update, may be taken from DB, depend on current case
      */
-    private BotState getBotState(Update update) {
+    private UpdateData toUpdateData(Update update) {
+        var updateData = new UpdateData();
 
-        // Get state form callback
-        if (update.hasCallbackQuery()) {
-            return tryGetStatusFromCallback(update.getCallbackQuery());
+        if (!update.hasMessage() && !update.hasCallbackQuery()) {
+            updateData.setBotState(BotState.UNKNOWN);
+            return updateData;
         }
 
-        if (!update.hasMessage()) {
-            return BotState.UNKNOWN;
+        // If request data is enough, return it
+        extractUpdate2Data(update, updateData);
+        if (updateData.getBotState() != null) {
+            return updateData;
         }
 
-        // Or else from DB
-        var text = update.getMessage().getText();
-        var userId = update.getMessage().getChatId();
-        var username = update.getMessage().getFrom().getUserName();
+        // Else fetch status from db
+        var maybeStateFromDb = botStateService.getCurrentState(updateData.getUserId());
 
-        var maybeState = botStateService.getCurrentState(userId);
-
-        BotState state;
-        if (maybeState.isEmpty() || Objects.equals(text, "/start")) {
-            state = BotState.JOINED;
-            botStateService.updateState(userId, username, state);
+        if (maybeStateFromDb.isEmpty() || Objects.equals(updateData.getMessage().orElse(""), "/start")) {
+            updateData.setBotState(BotState.JOINED);
+            botStateService.updateState(updateData.getUsername(), updateData.getUserId(), updateData.getBotState());
         } else {
-            state = maybeState.get();
+            updateData.setBotState(maybeStateFromDb.get());
         }
-        return state;
+
+        if (updateData.getBotState() == null) {
+            updateData.setBotState(BotState.UNKNOWN);
+        }
+
+        return updateData;
     }
 
-    private BotState tryGetStatusFromCallback(CallbackQuery callbackQuery) {
+    private void extractUpdate2Data(Update extractFrom, UpdateData extractTo) {
+        if (extractFrom.hasCallbackQuery()) {
+            extractTo.setUsername(extractFrom.getCallbackQuery().getFrom().getUserName());
+            extractTo.setUserId(extractFrom.getCallbackQuery().getFrom().getId());
+            extractTo.setCallBackDataAndBotState(tryGetCallbackData(extractFrom.getCallbackQuery()));
+        }
+
+        if (extractFrom.hasMessage()) {
+            extractTo.setUsername(extractFrom.getMessage().getFrom().getUserName());
+            extractTo.setUserId(extractFrom.getMessage().getFrom().getId());
+
+            if (extractFrom.getMessage().hasText()) {
+                extractTo.setMessage(Optional.of(extractFrom.getMessage().getText()));
+            }
+
+            if (extractFrom.getMessage().hasPhoto()) {
+                extractTo.setPhotoSizes(Optional.of(extractFrom.getMessage().getPhoto()));
+            }
+        }
+    }
+
+    private Optional<CallbackQueryData> tryGetCallbackData(CallbackQuery callbackQuery) {
         try {
-            var data = objectMapper.readValue(callbackQuery.getData(), CallbackQueryData.class);
-            return data.getState();
+            return Optional.of(objectMapper.readValue(callbackQuery.getData(), CallbackQueryData.class));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return BotState.UNKNOWN;
+            return Optional.empty();
         }
     }
 }

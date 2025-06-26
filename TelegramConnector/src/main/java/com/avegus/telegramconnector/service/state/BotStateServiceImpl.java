@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -18,13 +17,13 @@ public class BotStateServiceImpl implements BotStateService {
     private final UserRepo userRepo;
 
     @Override
-    public void updateState(Long userId, String username, BotState newState) {
+    public void updateState(String username, Long userId, BotState botState) {
         var upsatedUser = userRepo.findById(userId)
                 .map(foundUser -> {
-                    foundUser.setState(newState.name());
+                    foundUser.setState(botState.name());
                     return foundUser;
                 })
-                .orElse(new User(userId, username, newState.name(), LocalDateTime.now()));
+                .orElse(User.from(userId, username, botState.name()));
         userRepo.save(upsatedUser);
     }
 

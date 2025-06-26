@@ -5,27 +5,27 @@ import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.dto.UpdateData;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Captions;
-import com.avegus.telegramconnector.service.state.BotStateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static com.avegus.telegramconnector.factory.InlineKeyboardFactory.backButton;
+import static com.avegus.telegramconnector.factory.InlineKeyboardFactory.photoUploadDesision;
 
-// Asks photo
-@Slf4j
+// Sends markup to decide what to do with uploaded photo
 @RequiredArgsConstructor
+@Slf4j
 @Service
-public class AddCatHandler implements MessageHandler {
-    private final MessageSender messageSender;
-    private final BotStateService stateService;
+public class AddCatPhotoMenuHandler implements MessageHandler {
 
+    private final MessageSender messageSender;
+
+    @Override
     public void handle(UpdateData update) {
-        stateService.updateState(update.getUsername(), update.getUserId(), BotState.ADD_CAT_ASK_PHOTO);
-        messageSender.sendMarkup(update.getUserId(), backButton(), Captions.REQUEST_PHOTO);
+        messageSender.sendMarkup(update.getUserId(), photoUploadDesision(), Captions.PHOTO_UPLOAD_DECISION_RETRY);
     }
 
+    @Override
     public boolean canHandle(UpdateData update) {
-        return update.hasCallbackData() && update.getBotState() == BotState.ADD_CAT;
+        return update.getBotState() == BotState.ADD_PHOTO_MENU;
     }
 }

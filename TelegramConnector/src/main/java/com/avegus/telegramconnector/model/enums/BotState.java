@@ -7,10 +7,12 @@ public enum BotState {
     LIST_ALL_CATS,
     RATE_CAT,
     ADD_CAT,
-    ADD_CAT_ASK_NAME,
+    ADD_PHOTO_MENU,
     ADD_CAT_ASK_PHOTO,
     MY_CATS,
     MY_CAT_ACTIONS,
     DELETE,
+    ADD_CAT_ASK_NAME,
+    ADD_CAT_CONSUME_NAME,
     UNKNOWN
 }
