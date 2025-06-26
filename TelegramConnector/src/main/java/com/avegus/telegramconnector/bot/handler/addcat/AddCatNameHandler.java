@@ -4,6 +4,7 @@ import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.KafkaProducerService;
 import com.avegus.telegramconnector.broker.dto.AddCatRequest;
+import com.avegus.telegramconnector.broker.dto.UpdateData;
 import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Captions;
@@ -12,8 +13,10 @@ import com.avegus.telegramconnector.service.state.BotStateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
+import static com.avegus.telegramconnector.factory.InlineKeyboardFactory.backButton;
+
+// Consumes name, after name asking
 @RequiredArgsConstructor
 @Slf4j
 @Service
@@ -24,31 +27,24 @@ public class AddCatNameHandler implements MessageHandler {
     private final BotStateService botStateService;
     private final InMemStorageById storageById;
 
-    public void handle(Update update) {
-        var userId = update.getMessage().getFrom().getId();
-        var username = update.getMessage().getFrom().getUserName();
+    public void handle(UpdateData update) {
 
-        if (!update.getMessage().hasText()) {
-            messageSender.sendMarkup(userId, InlineKeyboardFactory.menuMarkup(), Captions.WEIRD_CAT_NAME);
-            return;
-        }
-
-        var fileId = this.storageById.get(userId);
+        var fileId = storageById.get(update.getUserId());
         if (fileId.isEmpty()) {
-            botStateService.updateState(userId, username, BotState.ADD_CAT_ASK_PHOTO);
-            messageSender.sendMarkup(userId, InlineKeyboardFactory.menuMarkup(), Captions.WEIRD_PHOTO);
+            botStateService.updateState(update.getUsername(), update.getUserId(), BotState.ADD_CAT_ASK_PHOTO);
+            messageSender.sendMarkup(update.getUserId(), backButton(), Captions.WEIRD_PHOTO);
             return;
         }
 
-        var catName = update.getMessage().getText();
-        botStateService.updateState(userId, username, BotState.MAIN_MENU);
-        messageSender.sendMarkup(userId, InlineKeyboardFactory.menuMarkup(), String.format(Captions.CAT_SAVED, catName));
+        var catName = update.getMessage().get();
+        botStateService.updateState(update.getUsername(), update.getUserId(), BotState.MAIN_MENU);
+        messageSender.sendMarkup(update.getUserId(), InlineKeyboardFactory.menuMarkup(), String.format(Captions.CAT_SAVED, catName));
 
-        var addCatRequest = new AddCatRequest(userId, catName, fileId.get());
+        var addCatRequest = new AddCatRequest(update.getUserId(), catName, fileId.get());
         kafkaProducerService.sendAddCatRequest(addCatRequest);
     }
 
-    public boolean canHandle(Update update, BotState state) {
-        return update.hasMessage() && state == BotState.ADD_CAT_ASK_NAME;
+    public boolean canHandle(UpdateData update) {
+        return update.hasMessage() && update.getBotState() == BotState.ADD_CAT_CONSUME_NAME;
     }
 }

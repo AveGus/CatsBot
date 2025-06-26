@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +16,6 @@ public class TelegramConnector implements SpringLongPollingBot, LongPollingSingl
 
     private final BotConfig botConfig;
     private final TelegramFacade telegramFacade;
-    private final TelegramClient telegramClient;
 
     @Override
     public String getBotToken() {
@@ -32,16 +29,6 @@ public class TelegramConnector implements SpringLongPollingBot, LongPollingSingl
 
     @Override
     public void consume(Update update) {
-        telegramFacade.handleUpdate(update)
-                .map(this::executeSafe);
-    }
-
-    private BotApiMethodMessage executeSafe(BotApiMethodMessage message) {
-        try {
-            telegramClient.execute(message);
-        } catch (Exception e) {
-            log.error("Failed to send message, ", e);
-        }
-        return message;
+        telegramFacade.handleUpdate(update);
     }
 }

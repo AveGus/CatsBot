@@ -4,6 +4,5 @@ import java.util.Optional;
 
 public interface InMemStorageById {
     Optional<String> get(Long key);
-
-    void set(Long key, String value);
+    void put(Long key, String value);
 }

@@ -2,20 +2,20 @@ package com.avegus.telegramconnector.bot.handler.addcat;
 
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
-import com.avegus.telegramconnector.broker.KafkaProducerService;
+import com.avegus.telegramconnector.broker.dto.UpdateData;
 import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Captions;
 import com.avegus.telegramconnector.service.state.BotStateService;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Update;
+
+import static com.avegus.telegramconnector.factory.InlineKeyboardFactory.photoUploadDesision;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -26,34 +26,29 @@ public class AddCatPhotoHandler implements MessageHandler, InMemStorageById {
     private final BotStateService botStateService;
     private final ConcurrentHashMap<Long, String> userTempCatPhotos = new ConcurrentHashMap<>();
 
-    public void handle(Update update) {
-        var userId = update.getMessage().getFrom().getId();
-        var username = update.getMessage().getFrom().getUserName();
+    public void handle(UpdateData update) {
 
-        if (update.getMessage().hasPhoto()
-                && !update.getMessage().getPhoto().isEmpty()
-                && update.getMessage().getMediaGroupId() == null) {
-            var photos = update.getMessage().getPhoto();
-
-            set(userId, (photos.getLast()).getFileId());
-
-            messageSender.sendMessage(userId, Captions.PHOTO_SAVED_ASK_NAME);
-            botStateService.updateState(userId, username, BotState.ADD_CAT_ASK_NAME);
-        } else {
-            messageSender.sendMarkup(userId, InlineKeyboardFactory.menuMarkup(), Captions.WEIRD_PHOTO);
+        if (!update.hasPhotoSizes()) {
+            messageSender.sendMarkup(update.getUserId(), InlineKeyboardFactory.menuMarkup(), Captions.WEIRD_PHOTO);
         }
+
+        var photo = update.getPhotoSizes().get().getLast();
+
+        put(update.getUserId(), photo.getFileId());
+        messageSender.sendMarkup(update.getUserId(), photoUploadDesision(), Captions.PHOTO_UPLOAD_DECISION);
+        botStateService.updateState(update.getUsername(), update.getUserId(), BotState.ADD_PHOTO_MENU);
     }
 
-    public boolean canHandle(Update update, BotState state) {
-        return update.hasMessage() && state == BotState.ADD_CAT_ASK_PHOTO;
+    public boolean canHandle(UpdateData update) {
+        return update.getBotState() == BotState.ADD_CAT_ASK_PHOTO;
     }
 
     public Optional<String> get(Long key) {
-        return this.userTempCatPhotos.containsKey(key) ?
-                Optional.of(this.userTempCatPhotos.get(key)) : Optional.empty();
+        return userTempCatPhotos.containsKey(key) ?
+                Optional.of(userTempCatPhotos.get(key)) : Optional.empty();
     }
 
-    public void set(Long key, String value) {
-        this.userTempCatPhotos.put(key, value);
+    public void put(Long key, String value) {
+        userTempCatPhotos.put(key, value);
     }
 }
