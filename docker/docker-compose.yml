@@ -11,6 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/catbot/data
 
   zookeeper:
+#    image: wurstmeister/zookeeper
     image: arm64v8/zookeeper
     container_name: zookeeper
     ports:
