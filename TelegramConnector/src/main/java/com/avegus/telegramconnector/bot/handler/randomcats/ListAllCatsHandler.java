@@ -3,14 +3,13 @@ package com.avegus.telegramconnector.bot.handler.randomcats;
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.KafkaProducerService;
-import com.avegus.telegramconnector.broker.dto.UpdateData;
+import com.avegus.telegramconnector.model.dto.UpdateData;
 import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Captions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Slf4j
 @RequiredArgsConstructor

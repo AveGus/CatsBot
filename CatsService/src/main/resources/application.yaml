@@ -1,4 +1,14 @@
 spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+    consumer:
+      group-id: cat-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
@@ -6,3 +16,17 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     database: postgresql
+
+topics:
+  cat:
+    add: "cat.add"
+    like: "cat.like"
+    dislike: "cat.dislike"
+    delete: "cat.delete"
+    request-by-id: "cat.request.by_id"
+    request-by-user: "cat.request.by_user"
+    request-random: "cat.request.random"
+    response-by-id: "cat.response.by_id"
+    response-by-user: "cat.response.by_user"
+    response-random: "cat.response.random"
+

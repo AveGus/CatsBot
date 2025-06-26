@@ -1,6 +1,5 @@
 package com.avegus.telegramconnector.model;
 
-import com.avegus.telegramconnector.broker.dto.UpdateData;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;

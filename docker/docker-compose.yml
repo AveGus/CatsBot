@@ -1,21 +1,4 @@
 services:
-
-  kafka:
-    image: apache/kafka-native:4.0.0
-    restart: always
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
-
   db:
     image: postgres
     restart: always
@@ -24,3 +7,43 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: postgres
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+#  cats-service:
+#    build:
+#      context: ./CatsService
+#      dockerfile: Dockerfile
+#    container_name: cats-service
+#    depends_on:
+#      - kafka
+#      - db
+#
+#  telegram-connector:
+#    build:
+#      context: ./TelegramConnector
+#      dockerfile: Dockerfile
+#    container_name: telegram-connector
+#    environment:
+#      - BOT_TOKEN = ${BOT_TOKEN}
+#      - BOT_NAME = ${BOT_NAME}
+#    depends_on:
+#      - kafka
+#      - db

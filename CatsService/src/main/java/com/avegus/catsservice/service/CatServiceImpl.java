@@ -71,4 +71,9 @@ public class CatServiceImpl implements CatService {
                     repository.save(cat);
                 });
     }
+
+    @Override
+    public Optional<Cat> randomCatFor(Long whoRequested) {
+        return repository.findByCreatorIdNot(whoRequested);
+    }
 }

@@ -14,4 +14,6 @@ public interface CatService {
 
     void likeCat(UUID catId);
     void dislikeCat(UUID catId);
+
+    Optional<Cat> randomCatFor(Long userId);
 }

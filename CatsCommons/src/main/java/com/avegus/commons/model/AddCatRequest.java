@@ -1,4 +1,4 @@
-package com.avegus.telegramconnector.broker.dto;
+package com.avegus.commons.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
