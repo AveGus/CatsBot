@@ -1,5 +1,6 @@
 package com.avegus.telegramconnector.bot.handler.mycats;
 
+import com.avegus.commons.model.CatIdWithUserId;
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.KafkaProducerService;
@@ -21,10 +22,10 @@ public class MyCatsDeleteHandler implements MessageHandler {
 
     @SneakyThrows
     public void handle(UpdateData update) {
-        var catId = update.getCallbackData().get().getPayload();
+        var catId = update.getCallbackData().get().getP();
 
         if (catId != null && !catId.isEmpty()) {
-            kafkaProducer.sendDeleteCatRequest(update.getUserId(), catId);
+            kafkaProducer.sendDeleteCatRequest(new CatIdWithUserId(catId, update.getUserId()));
             messageSender.sendMessage(update.getUserId(), Captions.DELETED_ACTION);
             myCatsHandler.handle(update);
         } else {

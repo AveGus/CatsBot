@@ -1,7 +1,7 @@
 package com.avegus.telegramconnector.factory;
 
+import com.avegus.commons.model.CatDto;
 import com.avegus.telegramconnector.model.dto.CallbackQueryData;
-import com.avegus.telegramconnector.model.dto.CatIdWithNameDto;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Rating;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,25 +20,24 @@ public class InlineKeyboardFactory {
     private static final Logger log =  java.util.logging.Logger.getLogger(InlineKeyboardFactory.class.getName());
     private static final ObjectMapper om = new ObjectMapper();
 
-
     @SneakyThrows
-    public static InlineKeyboardMarkup catRatingMarkup(String catId) {
+    public static InlineKeyboardMarkup catRatingMarkup(String catId, Long likes, Long dislikes) {
         var row1 = new InlineKeyboardRow();
         var row2 = new InlineKeyboardRow();
 
         row1.add(InlineKeyboardButton.builder()
-                .text("Круто!")
+                .text(String.format("\uD83D\uDC4D (%s)", likes.toString()))
                 .callbackData(
                         om.writeValueAsString(
-                                new CallbackQueryData(BotState.RATE_CAT, catId + ":" + Rating.LIKE.name())
+                                new CallbackQueryData(BotState.RATE, catId + ":" + Rating.YES.name())
                         )
                 )
                 .build());
         row1.add(InlineKeyboardButton.builder()
-                .text("Не круто")
+                .text(String.format("\uD83D\uDC4E (%s)", dislikes.toString()))
                 .callbackData(
                         om.writeValueAsString(
-                                new CallbackQueryData(BotState.RATE_CAT, catId + ":" + Rating.DISLIKE.name())
+                                new CallbackQueryData(BotState.RATE, catId + ":" + Rating.NO.name())
                         )
                 )
                 .build());
@@ -120,7 +119,7 @@ public class InlineKeyboardFactory {
     }
 
     @SneakyThrows
-    public static InlineKeyboardMarkup myCatsMarkup(List<CatIdWithNameDto> catDtos) {
+    public static InlineKeyboardMarkup myCatsMarkup(List<CatDto> catDtos) {
         var row1 = new InlineKeyboardRow();
         var row2 = new InlineKeyboardRow();
 
@@ -130,7 +129,7 @@ public class InlineKeyboardFactory {
                         .text(catDto.getName())
                         .callbackData(
                                 om.writeValueAsString(
-                                        new CallbackQueryData(BotState.MY_CAT_ACTIONS, catDto.getId())
+                                        new CallbackQueryData(BotState.MANAGE_CAT, catDto.getId().toString())
                                 )
                         )
                         .build());

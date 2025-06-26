@@ -3,7 +3,7 @@ package com.avegus.catsservice.broker;
 import com.avegus.commons.model.*;
 
 public interface CatConsumer {
-    void onCatAddRequest(CatAddRequest request);
+    void onCatAddRequest(AddCatRequest request);
     void onCatLikeRequest(CatIdDto catId);
     void onCatDislikeRequest(CatIdDto catId);
     void onCatDeleteRequest(CatIdWithUserId request);

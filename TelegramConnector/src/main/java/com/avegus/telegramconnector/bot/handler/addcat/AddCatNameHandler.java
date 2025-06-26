@@ -1,9 +1,9 @@
 package com.avegus.telegramconnector.bot.handler.addcat;
 
+import com.avegus.commons.model.AddCatRequest;
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.KafkaProducerService;
-import com.avegus.telegramconnector.broker.dto.AddCatRequest;
 import com.avegus.telegramconnector.model.dto.UpdateData;
 import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
@@ -40,7 +40,7 @@ public class AddCatNameHandler implements MessageHandler {
         botStateService.updateState(update.getUsername(), update.getUserId(), BotState.MAIN_MENU);
         messageSender.sendMarkup(update.getUserId(), InlineKeyboardFactory.menuMarkup(), String.format(Captions.CAT_SAVED, catName));
 
-        var addCatRequest = new AddCatRequest(update.getUserId(), catName, fileId.get());
+        var addCatRequest = new AddCatRequest(update.getUserId(), update.getUsername(), catName, fileId.get());
         kafkaProducerService.sendAddCatRequest(addCatRequest);
     }
 

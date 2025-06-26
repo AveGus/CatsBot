@@ -21,9 +21,9 @@ public class CatConsumerImpl implements CatConsumer {
 
     @KafkaListener(topics = "${topics.cat.add}", groupId = "cat-service")
     @Override
-    public void onCatAddRequest(CatAddRequest request) {
+    public void onCatAddRequest(AddCatRequest request) {
         log.info("Received cat add request: {}", request);
-        catService.addCat(request.getName(), request.getFileId(), request.getCreatorUsername(), request.getCreatorId());
+        catService.addCat(request.getCatName(), request.getFileId(), request.getUsername(), request.getUserId());
     }
 
     @KafkaListener(topics = "${topics.cat.like}", groupId = "cat-service")

@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -18,5 +17,12 @@ public class CatDto {
     private String creatorUsername;
     private Long likesCount;
     private Long dislikesCount;
-    private LocalDateTime created;
+
+    public String generateDescription() {
+        return String.format("%s\nАвтор @%s", name, creatorUsername);
+    }
+
+    public String generateDescriptionWithLikes(String likes, String dislikes) {
+        return String.format("%s\n@%s\n \uD83D\uDC4D (%s) \t \uD83D\uDC4E (%s)", name, creatorUsername, likes, dislikes);
+    }
 }

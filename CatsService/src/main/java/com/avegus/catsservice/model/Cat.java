@@ -64,8 +64,7 @@ public class Cat {
                 creatorId,
                 creatorUsername,
                 likesCount,
-                dislikesCount,
-                created
+                dislikesCount
         );
     }
 }

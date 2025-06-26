@@ -22,7 +22,7 @@ public class AskNameHandler implements MessageHandler {
     public void handle(UpdateData update) {
 
         botStateService.updateState(update.getUsername(), update.getUserId(), BotState.MAIN_MENU);
-        messageSender.sendMessage(update.getUserId(), String.format("Привет, %s!", update.getMessage()));
+        messageSender.sendMessage(update.getUserId(), String.format("Привет, %s!", update.getMessage().orElse("name-error")));
         messageSender.sendMarkup(update.getUserId(), InlineKeyboardFactory.menuMarkup(), Captions.MENU_CAPTION);
     }
 

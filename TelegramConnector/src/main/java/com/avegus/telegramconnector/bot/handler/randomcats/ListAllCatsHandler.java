@@ -1,12 +1,10 @@
 package com.avegus.telegramconnector.bot.handler.randomcats;
 
+import com.avegus.commons.model.UserIdDto;
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
-import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.KafkaProducerService;
 import com.avegus.telegramconnector.model.dto.UpdateData;
-import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
-import com.avegus.telegramconnector.model.enums.Captions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,17 +14,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class ListAllCatsHandler implements MessageHandler {
     private final KafkaProducerService kafkaProducer;
-    private final MessageSender messageSender;
 
     public void handle(UpdateData update) {
-
-        kafkaProducer.requestRandomCat(update.getUserId());
-        // // TODO should be sent by consumer
-        messageSender.sendMarkup(
-                update.getUserId(),
-                InlineKeyboardFactory.catRatingMarkup("fakeId"),
-                String.format(Captions.FAKE_CAT, 10, 1)
-        );
+        kafkaProducer.requestRandomCat(new UserIdDto(update.getUserId()));
     }
 
     public boolean canHandle(UpdateData update) {
