@@ -6,14 +6,17 @@ import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Rating;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class InlineKeyboardFactory {
 
@@ -120,9 +123,37 @@ public class InlineKeyboardFactory {
 
     @SneakyThrows
     public static InlineKeyboardMarkup myCatsMarkup(List<CatDto> catDtos) {
-        var row1 = new InlineKeyboardRow();
-        var row2 = new InlineKeyboardRow();
+        var catRows = new ArrayList<InlineKeyboardRow>();
+        var backBtnRow = new InlineKeyboardRow();
 
+        // Coz we can have only 3 rows of cats and 1 leave for back button
+        var batched = Lists.partition(catDtos, 3)
+                .stream()
+                .limit(3)
+                .toList();
+        batched.forEach(cats -> {
+            var newRow = new InlineKeyboardRow();
+            writeCats2Row(cats, newRow);
+            catRows.add(newRow);
+        });
+
+        backBtnRow.add(InlineKeyboardButton.builder()
+                .text("Назад")
+                .callbackData(
+                        om.writeValueAsString(
+                                new CallbackQueryData(BotState.MAIN_MENU, null)
+                        )
+                )
+                .build());
+
+        catRows.add(backBtnRow);
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(catRows)
+                .build();
+    }
+
+    private static void writeCats2Row(List<CatDto> catDtos, InlineKeyboardRow row1) {
         catDtos.forEach(catDto -> {
             try {
                 row1.add(InlineKeyboardButton.builder()
@@ -138,19 +169,6 @@ public class InlineKeyboardFactory {
                 log.log(Level.WARNING, msg);
             }
         });
-
-        row2.add(InlineKeyboardButton.builder()
-                .text("Назад")
-                .callbackData(
-                        om.writeValueAsString(
-                                new CallbackQueryData(BotState.MAIN_MENU, null)
-                        )
-                )
-                .build());
-
-        return InlineKeyboardMarkup.builder()
-                .keyboard(List.of(row1, row2))
-                .build();
     }
 
     @SneakyThrows
