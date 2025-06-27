@@ -7,6 +7,14 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CallbackQueryData {
-    private BotState state;
-    private String payload;
+    // Telegram callbackData entered chat
+
+    /**
+     * State
+     */
+    private BotState s;
+    /**
+     * Payload
+     */
+    private String p;
 }

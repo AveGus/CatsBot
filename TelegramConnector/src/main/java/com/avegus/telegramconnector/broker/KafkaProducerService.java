@@ -1,13 +1,13 @@
 package com.avegus.telegramconnector.broker;
 
-import com.avegus.telegramconnector.broker.dto.AddCatRequest;
+import com.avegus.commons.model.*;
 
 public interface KafkaProducerService {
-    void sendLikeEvent(String catId);
-    void sendDislikeEvent(String catId);
-    void requestRandomCat(Long userId);
-    void requestUserCats(Long userId);
-    void requestUserCat(Long userId, String catId);
-    void sendDeleteCatRequest(Long userId, String catId);
+    void sendLikeEvent(CatIdDto catId);
+    void sendDislikeEvent(CatIdDto catId);
+    void requestRandomCat(UserIdDto userId);
+    void requestUserCats(UserIdDto userId);
+    void requestUserCat(CatIdWithUserId catsWithUserId);
+    void sendDeleteCatRequest(CatIdWithUserId catsWithUserId);
     void sendAddCatRequest(AddCatRequest request);
 }

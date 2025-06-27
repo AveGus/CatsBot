@@ -4,5 +4,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 public interface MessageSender {
     void sendMessage(Long userId, String text);
+    void sendPhotoWithMarkup(Long userId, String caption, InlineKeyboardMarkup markup, String fileId);
     void sendMarkup(Long userId, InlineKeyboardMarkup markup, String caption);
 }
