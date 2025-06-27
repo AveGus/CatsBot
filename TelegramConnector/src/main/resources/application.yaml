@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database: postgresql
+
+bot:
+  token: ${BOT_TOKEN}
+  name: ${BOT_NAME:"Catzzz"}
