@@ -19,7 +19,7 @@ public class CatDto {
     private Long dislikesCount;
 
     public String generateDescription() {
-        return String.format("%s\nАвтор @%s", name, creatorUsername);
+        return String.format("%s\n@%s", name, creatorUsername);
     }
 
     public String generateDescriptionWithLikes(String likes, String dislikes) {
