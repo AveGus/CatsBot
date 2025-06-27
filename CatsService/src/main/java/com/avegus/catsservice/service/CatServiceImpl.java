@@ -82,6 +82,6 @@ public class CatServiceImpl implements CatService {
         if (cats.isEmpty()) {
             return Optional.empty();
         } else
-            return Optional.of(cats.get(rand.nextInt(cats.size() - 1)));
+            return Optional.of(cats.get(rand.nextInt(cats.size())));
     }
 }
