@@ -1,20 +1,17 @@
 package com.avegus.telegramconnector.bot.handler.randomcats;
 
+import com.avegus.commons.model.CatIdDto;
+import com.avegus.commons.model.UserIdDto;
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
 import com.avegus.telegramconnector.broker.KafkaProducerService;
-import com.avegus.telegramconnector.broker.dto.UpdateData;
-import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
-import com.avegus.telegramconnector.model.dto.CallbackQueryData;
+import com.avegus.telegramconnector.model.dto.UpdateData;
 import com.avegus.telegramconnector.model.enums.BotState;
-import com.avegus.telegramconnector.model.enums.Captions;
 import com.avegus.telegramconnector.model.enums.Rating;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,7 +26,7 @@ public class CatRatingHandler implements MessageHandler {
         String catId;
         Rating catRate;
         try {
-            var payload = update.getCallbackData().get().getPayload();
+            var payload = update.getCallbackData().get().getP();
             catId = payload.split(":")[0];
             catRate = Rating.valueOf(payload.split(":")[1]);
 
@@ -43,26 +40,21 @@ public class CatRatingHandler implements MessageHandler {
         }
 
         switch (catRate) {
-            case LIKE:
-                kafkaProducer.sendLikeEvent(catId);
+            case YES:
+                kafkaProducer.sendLikeEvent(new CatIdDto(catId));
                 break;
-            case DISLIKE:
-                kafkaProducer.sendDislikeEvent(catId);
+            case NO:
+                kafkaProducer.sendDislikeEvent(new CatIdDto(catId));
                 break;
             default:
                 log.warn("Received a callback query with invalid rating");
                 return;
         }
 
-        kafkaProducer.requestUserCats(update.getUserId());
-        // TODO should be sent by consumer
-        messageSender.sendMarkup(
-                update.getUserId(),
-                InlineKeyboardFactory.catRatingMarkup("fakeId"),
-                String.format(Captions.FAKE_CAT, 10, 1));
+        kafkaProducer.requestRandomCat(new UserIdDto(update.getUserId()));
     }
 
     public boolean canHandle(UpdateData update) {
-        return update.hasCallbackData() && update.getBotState() == BotState.RATE_CAT;
+        return update.hasCallbackData() && update.getBotState() == BotState.RATE;
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -17,6 +18,8 @@ import java.util.UUID;
 public class CatServiceImpl implements CatService {
 
     private final CatRepo repository;
+
+    private final Random rand = new Random();
 
     @Override
     public void addCat(String name, String fileId, String creatorUsername, Long creatorId) {
@@ -70,5 +73,15 @@ public class CatServiceImpl implements CatService {
                     cat.setDislikesCount(cat.getDislikesCount() + 1);
                     repository.save(cat);
                 });
+    }
+
+    @Override
+    public Optional<Cat> randomCatFor(Long whoRequested) {
+        var cats = repository.findAllByCreatorIdNot(whoRequested);
+
+        if (cats.isEmpty()) {
+            return Optional.empty();
+        } else
+            return Optional.of(cats.get(rand.nextInt(cats.size())));
     }
 }

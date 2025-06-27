@@ -27,6 +27,15 @@ public class MessageSenderImpl implements MessageSender {
     }
 
     @Override
+    public void sendPhotoWithMarkup(Long chatId, String caption, InlineKeyboardMarkup markup, String fileId) {
+        try {
+            telegramClient.execute(toSendPhotoWithMarkup(chatId, caption, markup, fileId));
+        } catch (Exception e) {
+            log.error("Error while sending photo with file {} to {}, ", fileId, chatId, e);
+        }
+    }
+
+    @Override
     public void sendMarkup(Long userId, InlineKeyboardMarkup markup, String caption) {
         log.debug("Sending markup with text to {}, text {}", userId, caption);
 

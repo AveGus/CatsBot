@@ -2,7 +2,7 @@ package com.avegus.telegramconnector.bot.handler.common;
 
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
-import com.avegus.telegramconnector.broker.dto.UpdateData;
+import com.avegus.telegramconnector.model.dto.UpdateData;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.service.state.BotStateService;
 import lombok.RequiredArgsConstructor;

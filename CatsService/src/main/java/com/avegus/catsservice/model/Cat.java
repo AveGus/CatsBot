@@ -1,5 +1,6 @@
 package com.avegus.catsservice.model;
 
+import com.avegus.commons.model.CatDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -52,6 +53,18 @@ public class Cat {
                 0L,
                 0L,
                 LocalDateTime.now()
+        );
+    }
+
+    public CatDto toDto() {
+        return new CatDto(
+                id,
+                name,
+                fileId,
+                creatorId,
+                creatorUsername,
+                likesCount,
+                dislikesCount
         );
     }
 }

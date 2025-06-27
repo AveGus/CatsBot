@@ -1,6 +1,5 @@
-package com.avegus.telegramconnector.broker.dto;
+package com.avegus.telegramconnector.model.dto;
 
-import com.avegus.telegramconnector.model.dto.CallbackQueryData;
 import com.avegus.telegramconnector.model.enums.BotState;
 import lombok.Data;
 import org.telegram.telegrambots.meta.api.objects.photo.PhotoSize;
@@ -33,6 +32,6 @@ public class UpdateData {
     public void setCallBackDataAndBotState(Optional<CallbackQueryData> callbackData) {
         this.callbackData = callbackData;
 
-        callbackData.ifPresent(callbackQueryData -> this.botState = callbackQueryData.getState());
+        callbackData.ifPresent(callbackQueryData -> this.botState = callbackQueryData.getS());
     }
 }

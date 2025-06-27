@@ -1,6 +1,5 @@
 package com.avegus.telegramconnector.bot.sender;
 
-import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -18,17 +17,6 @@ public class MessageSenderHelper {
                 .build();
     }
 
-    @SneakyThrows
-    public static SendPhoto toSendPhoto(Long userId, byte[] photo, String fileName) {
-        var inputFile = new InputFile();
-        inputFile.setMedia(byteArrayToFile(photo, fileName));
-
-        return SendPhoto.builder()
-                .chatId(String.valueOf(userId))
-                .photo(inputFile)
-                .build();
-    }
-
     public static File byteArrayToFile(byte[] bytes, String fileName) throws IOException {
         File file = new File(fileName);
         try (FileOutputStream fos = new FileOutputStream(file)) {
@@ -41,5 +29,14 @@ public class MessageSenderHelper {
         var msg = toSendMessage(userId, caption);
         msg.setReplyMarkup(markup);
         return msg;
+    }
+
+    public static SendPhoto toSendPhotoWithMarkup(Long chatId, String caption, InlineKeyboardMarkup markup,  String fileId) {
+        return SendPhoto.builder()
+                .chatId(chatId.toString())
+                .photo(new InputFile(fileId))
+                .replyMarkup(markup)
+                .caption(caption)
+                .build();
     }
 }

@@ -1,7 +1,7 @@
 package com.avegus.telegramconnector.bot;
 
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
-import com.avegus.telegramconnector.broker.dto.UpdateData;
+import com.avegus.telegramconnector.model.dto.UpdateData;
 import com.avegus.telegramconnector.model.dto.CallbackQueryData;
 import com.avegus.telegramconnector.service.state.BotStateService;
 import com.avegus.telegramconnector.model.enums.BotState;

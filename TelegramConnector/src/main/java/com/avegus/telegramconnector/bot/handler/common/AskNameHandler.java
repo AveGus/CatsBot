@@ -2,7 +2,7 @@ package com.avegus.telegramconnector.bot.handler.common;
 
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
-import com.avegus.telegramconnector.broker.dto.UpdateData;
+import com.avegus.telegramconnector.model.dto.UpdateData;
 import com.avegus.telegramconnector.factory.InlineKeyboardFactory;
 import com.avegus.telegramconnector.model.enums.BotState;
 import com.avegus.telegramconnector.model.enums.Captions;
@@ -22,7 +22,7 @@ public class AskNameHandler implements MessageHandler {
     public void handle(UpdateData update) {
 
         botStateService.updateState(update.getUsername(), update.getUserId(), BotState.MAIN_MENU);
-        messageSender.sendMessage(update.getUserId(), String.format("Привет, %s!", update.getMessage()));
+        messageSender.sendMessage(update.getUserId(), String.format("Привет, %s!", update.getMessage().orElse("name-error")));
         messageSender.sendMarkup(update.getUserId(), InlineKeyboardFactory.menuMarkup(), Captions.MENU_CAPTION);
     }
 

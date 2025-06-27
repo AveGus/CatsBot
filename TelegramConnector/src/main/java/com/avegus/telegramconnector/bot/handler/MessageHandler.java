@@ -1,6 +1,6 @@
 package com.avegus.telegramconnector.bot.handler;
 
-import com.avegus.telegramconnector.broker.dto.UpdateData;
+import com.avegus.telegramconnector.model.dto.UpdateData;
 
 public interface MessageHandler {
     void handle(UpdateData update);
