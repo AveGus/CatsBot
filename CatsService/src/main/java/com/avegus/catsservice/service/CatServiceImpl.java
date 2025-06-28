@@ -5,6 +5,7 @@ import com.avegus.catsservice.model.CatView;
 import com.avegus.catsservice.model.id.CatId2UserId;
 import com.avegus.catsservice.repo.CatRepo;
 import com.avegus.catsservice.repo.CatViewRepo;
+import com.avegus.commons.model.CatIdWithUserId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,6 @@ public class CatServiceImpl implements CatService {
 
     private final CatRepo catRepo;
     private final CatViewRepo catViewRepo;
-
-    private final Random rand = new Random();
 
     @Override
     public void addCat(String name, String fileId, String creatorUsername, Long creatorId) {
@@ -58,28 +57,50 @@ public class CatServiceImpl implements CatService {
                 });
     }
 
-    // Some control of race condition, BIGSERIAL may be better and faster
-    @Transactional
     @Override
-    public void likeCat(UUID catId) {
+    public void likeCat(CatIdWithUserId catIdWithUserId) {
+        var viewedCatsIds = catViewRepo.findAllById_UserId(catIdWithUserId.getUserId())
+                .stream()
+                .map(CatView::getId)
+                .map(CatId2UserId::getCatId)
+                .toList();
+
+        var catId = UUID.fromString(catIdWithUserId.getCatId());
+        if (viewedCatsIds.contains(catId)) {
+            return;
+        }
+
         catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setLikesCount(cat.getLikesCount() + 1);
                     catRepo.save(cat);
+
+                    catViewRepo.save(new CatView(catIdWithUserId.getUserId(), catId));
                 });
     }
 
-    // Some control of race condition, BIGSERIAL may be better and faster
     @Override
-    public void dislikeCat(UUID catId) {
+    public void dislikeCat(CatIdWithUserId catIdWithUserId) {
+        var viewedCatsIds = catViewRepo.findAllById_UserId(catIdWithUserId.getUserId())
+                .stream()
+                .map(CatView::getId)
+                .map(CatId2UserId::getCatId)
+                .toList();
+
+        var catId = UUID.fromString(catIdWithUserId.getCatId());
+        if (viewedCatsIds.contains(catId)) {
+            return;
+        }
+
         catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setDislikesCount(cat.getDislikesCount() + 1);
                     catRepo.save(cat);
+
+                    catViewRepo.save(new CatView(catIdWithUserId.getUserId(), catId));
                 });
     }
 
-    @Transactional
     @Override
     public Optional<Cat> randomCatFor(Long whoRequested) {
         var viewedCatsIds = catViewRepo.findAllById_UserId(whoRequested)
@@ -99,8 +120,7 @@ public class CatServiceImpl implements CatService {
 
         // Do stuff with found or return Optional of empty
         return cats.stream().findFirst().map(cat -> {
-            var cat2Send = cats.get(rand.nextInt(cats.size()));
-            var catViewData = new CatView(whoRequested, cat2Send.getId());
+            var catViewData = new CatView(whoRequested, cat.getId());
             catViewRepo.save(catViewData);
             return cat;
         });

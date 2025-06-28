@@ -39,15 +39,15 @@ public class KafkaProducerServiceImpl implements KafkaProducerService {
     private String requestRandomCatTopic;
 
     @Override
-    public void sendLikeEvent(CatIdDto catId) {
-        log.info("Sending like event for {}", catId.getId());
-        kafkaTemplate.send(likeCatTopic, catId);
+    public void sendLikeEvent(CatIdWithUserId catIdWithUserId) {
+        log.info("Sending like event for {}", catIdWithUserId.getCatId());
+        kafkaTemplate.send(likeCatTopic, catIdWithUserId);
     }
 
     @Override
-    public void sendDislikeEvent(CatIdDto catId) {
-        log.info("Sending dislike event for {}", catId.getId());
-        kafkaTemplate.send(dislikeCatTopic, catId);
+    public void sendDislikeEvent(CatIdWithUserId catIdWithUserId) {
+        log.info("Sending dislike event for {}", catIdWithUserId.getCatId());
+        kafkaTemplate.send(dislikeCatTopic, catIdWithUserId);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.avegus.telegramconnector.bot.handler.randomcats;
 
 import com.avegus.commons.model.CatIdDto;
+import com.avegus.commons.model.CatIdWithUserId;
 import com.avegus.commons.model.UserIdDto;
 import com.avegus.telegramconnector.bot.handler.MessageHandler;
 import com.avegus.telegramconnector.bot.sender.MessageSender;
@@ -41,17 +42,14 @@ public class CatRatingHandler implements MessageHandler {
 
         switch (catRate) {
             case YES:
-                kafkaProducer.sendLikeEvent(new CatIdDto(catId));
+                kafkaProducer.sendLikeEvent(new CatIdWithUserId(catId, update.getUserId()));
                 break;
             case NO:
-                kafkaProducer.sendDislikeEvent(new CatIdDto(catId));
+                kafkaProducer.sendDislikeEvent(new CatIdWithUserId(catId, update.getUserId()));
                 break;
             default:
                 log.warn("Received a callback query with invalid rating");
-                return;
         }
-
-        kafkaProducer.requestRandomCat(new UserIdDto(update.getUserId()));
     }
 
     public boolean canHandle(UpdateData update) {
