@@ -87,7 +87,15 @@ public class CatServiceImpl implements CatService {
                 .map(CatView::getId)
                 .map(CatId2UserId::getCatId)
                 .toList();
-        var cats = catRepo.findAllByCreatorIdNotAndIdNotIn(whoRequested, viewedCatsIds);
+
+        // Empty viewedCatsIds on findAllByCreatorIdNotAndIdNotIn gives always empty resultSet .-.
+        List<Cat> cats;
+        if (!viewedCatsIds.isEmpty()) {
+            cats = catRepo.findAllByCreatorIdNotAndIdNotIn(whoRequested, viewedCatsIds);
+        } else {
+            cats = catRepo.findAllByCreatorIdNot(whoRequested);
+        }
+        log.info("Found {} possible random cats for {}, viewed cats: {}", cats.size(), whoRequested, viewedCatsIds.size());
 
         // Do stuff with found or return Optional of empty
         return cats.stream().findFirst().map(cat -> {
