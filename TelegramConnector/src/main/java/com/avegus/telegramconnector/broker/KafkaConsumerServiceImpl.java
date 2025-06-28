@@ -74,7 +74,7 @@ public class KafkaConsumerServiceImpl implements KafkaConsumerService {
         log.info("Consumed out of random cats {}", userId);
 
         messageSender.sendMarkup(userId.getId(),
-                outOfCatsMarkup(),
+                menuMarkup(),
                 Captions.OUT_OF_RANDOM_CATS);
     }
 }
