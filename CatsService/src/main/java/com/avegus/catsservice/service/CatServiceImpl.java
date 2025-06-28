@@ -1,16 +1,20 @@
 package com.avegus.catsservice.service;
 
 import com.avegus.catsservice.model.Cat;
+import com.avegus.catsservice.model.CatView;
 import com.avegus.catsservice.model.id.CatId2UserId;
 import com.avegus.catsservice.repo.CatRepo;
 import com.avegus.catsservice.repo.CatViewRepo;
 import com.avegus.commons.model.CatIdWithUserId;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -53,53 +57,103 @@ public class CatServiceImpl implements CatService {
                 });
     }
 
+    @Transactional
     @Override
     public void likeCat(CatIdWithUserId catIdWithUserId) {
-        var maybeViewInfo = catViewRepo.findById(CatId2UserId.from(catIdWithUserId));
-
         var catId = UUID.fromString(catIdWithUserId.getCatId());
+        // Set like, unset dislike if was set earlier
         catRepo.findById(catId)
                 .ifPresent(cat -> {
-                    cat.setLikesCount(cat.getLikesCount() + 1);
-                    catRepo.save(cat);
-
-                    maybeViewInfo.ifPresent(viewInfo -> {
-                        viewInfo.setIsLike(true);
-                        viewInfo.setViewedAt(LocalDateTime.now());
-                        viewInfo.setViewedTimes(viewInfo.getViewedTimes() + 1);
-                        catViewRepo.save(viewInfo);
-                    });
+                    manage4Like(cat, catIdWithUserId.getUserId());
                 });
     }
 
+    private void manage4Like(Cat cat, Long viewer) {
+        var maybeViewInfo = catViewRepo.findById(new CatId2UserId(viewer, cat.getId()));
+
+        maybeViewInfo.ifPresentOrElse(viewInfo -> {
+
+            if (!viewInfo.getIsLike()) {
+                cat.setDislikesCount(cat.getDislikesCount() - 1);
+                cat.setLikesCount(cat.getLikesCount() + 1);
+            }
+
+            viewInfo.setIsLike(true);
+            actualizeAndSave(viewInfo);
+        }, () -> {
+            var newViewInfo = new CatView(viewer, cat.getId(), true, 1L);
+            catViewRepo.save(newViewInfo);
+        });
+
+        catRepo.save(cat);
+    }
+
+    @Transactional
     @Override
     public void dislikeCat(CatIdWithUserId catIdWithUserId) {
-        var maybeViewInfo = catViewRepo.findById(CatId2UserId.from(catIdWithUserId));
-
         var catId = UUID.fromString(catIdWithUserId.getCatId());
+        // Set dislike, unset like if was set earlier
         catRepo.findById(catId)
                 .ifPresent(cat -> {
-                    cat.setDislikesCount(cat.getDislikesCount() + 1);
-                    catRepo.save(cat);
-
-                    maybeViewInfo.ifPresent(viewInfo -> {
-                        viewInfo.setIsLike(false);
-                        viewInfo.setViewedAt(LocalDateTime.now());
-                        viewInfo.setViewedTimes(viewInfo.getViewedTimes() + 1);
-                        catViewRepo.save(viewInfo);
-                    });
+                    manage4Dislike(cat, catIdWithUserId.getUserId());
                 });
+    }
+
+    private void manage4Dislike(Cat cat, Long viewer) {
+        var maybeViewInfo = catViewRepo.findById(new CatId2UserId(viewer, cat.getId()));
+
+        maybeViewInfo.ifPresentOrElse(viewInfo -> {
+
+            if (viewInfo.getIsLike()) {
+                cat.setDislikesCount(cat.getDislikesCount() + 1);
+                cat.setLikesCount(cat.getLikesCount() - 1);
+            }
+
+            viewInfo.setIsLike(false);
+            actualizeAndSave(viewInfo);
+        }, () -> {
+            var newViewInfo = new CatView(viewer, cat.getId(), false, 1L);
+            catViewRepo.save(newViewInfo);
+        });
+
+        catRepo.save(cat);
     }
 
     @Override
     public Optional<Cat> randomCatFor(Long whoRequested) {
-        // Empty viewedCatsIds on findAllByCreatorIdNotAndIdNotIn gives always empty resultSet .-.
-        var cats = catRepo.findAllByCreatorIdNot(whoRequested)
+        var viewedCatId2ViewInfo = catViewRepo.findAllById_UserId(whoRequested)
                 .stream()
-                .sorted(Comparator.comparing(Cat::getCreated).reversed())
-                .toList();
-        log.info("Found {} possible random cats for {}", cats.size(), whoRequested);
+                .collect(Collectors.toMap(catView -> catView.getId().getCatId(), Function.identity()));
 
-        return cats.stream().findFirst();
+        // Empty viewedCatsIds on findAllByCreatorIdNotAndIdNotIn gives always empty resultSet .-.
+        List<Cat> cats;
+        if (!viewedCatId2ViewInfo.isEmpty()) {
+            cats = catRepo.findAllByCreatorIdNotAndIdNotIn(whoRequested, viewedCatId2ViewInfo.keySet().stream().toList());
+        } else {
+            cats = catRepo.findAllByCreatorIdNot(whoRequested);
+        }
+
+        // If there is any non-viewed cats
+        if (!cats.isEmpty()) {
+            return cats.stream().findFirst();
+        }
+
+        // Get cat with min view count and return, if present
+        // Do not forget to upd counter
+        return viewedCatId2ViewInfo.values().stream()
+                .min(Comparator.comparing(CatView::getViewedTimes))
+                .flatMap(catInfo -> catRepo.findById(catInfo.getId().getCatId()))
+                .map(foundRareCat -> {
+                    var viewInfo2Update = viewedCatId2ViewInfo.get(foundRareCat.getId());
+                    actualizeAndSave(viewInfo2Update);
+
+                    return foundRareCat;
+                });
+    }
+
+    private void actualizeAndSave(CatView viewInfo) {
+        viewInfo.setViewedAt(LocalDateTime.now());
+        viewInfo.setViewedTimes(viewInfo.getViewedTimes() + 1);
+        catViewRepo.save(viewInfo);
     }
 }
