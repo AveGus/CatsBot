@@ -29,6 +29,7 @@ topics:
     like: "cat.like"
     dislike: "cat.dislike"
     delete: "cat.delete"
+    out-of-random-cats: "cat.out_of_random_cats"
     request-by-id: "cat.request.by_id"
     request-by-user: "cat.request.by_user"
     request-random: "cat.request.random"

@@ -2,6 +2,7 @@ package com.avegus.catsservice.broker;
 
 import com.avegus.commons.model.CatWithUserId;
 import com.avegus.commons.model.CatsWithUserId;
+import com.avegus.commons.model.UserIdDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,9 @@ public class CatProducerImpl implements CatProducer {
     @Value("${topics.cat.response-by-id}")
     private String userCatByIdTopic;
 
+    @Value("${topics.cat.out-of-random-cats}")
+    private String outOfRandomCatsTopic;
+
     @Override
     public void produceRandomCat(CatWithUserId toSend) {
         kafkaTemplate.send(randomCatTopic, toSend);
@@ -40,5 +44,11 @@ public class CatProducerImpl implements CatProducer {
     public void produceUserCat(CatWithUserId toSend) {
         kafkaTemplate.send(userCatByIdTopic, toSend);
         log.info("Sent single user cat to user {}: {}", toSend.getUserId(), toSend.getCat().getId());
+    }
+
+    @Override
+    public void produceOutOfRandomCats(UserIdDto userId) {
+        kafkaTemplate.send(outOfRandomCatsTopic, userId);
+        log.info("Sent out-of-random cats to user {}", userId);
     }
 }

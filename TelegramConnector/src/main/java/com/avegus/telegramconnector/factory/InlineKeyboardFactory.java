@@ -61,6 +61,31 @@ public class InlineKeyboardFactory {
     }
 
     @SneakyThrows
+    public static InlineKeyboardMarkup outOfCatsMarkup() {
+        var row1 = new InlineKeyboardRow();
+        row1.add(InlineKeyboardButton.builder()
+                .text("Мои котики")
+                .callbackData(
+                        om.writeValueAsString(
+                                new CallbackQueryData(BotState.MY_CATS, null)
+                        )
+                )
+                .build());
+        row1.add(InlineKeyboardButton.builder()
+                .text("Добавить котика")
+                .callbackData(
+                        om.writeValueAsString(
+                                new CallbackQueryData(BotState.ADD_CAT, null)
+                        )
+                )
+                .build());
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(List.of(row1))
+                .build();
+    }
+
+    @SneakyThrows
     public static InlineKeyboardMarkup menuMarkup() {
         var row1 = new InlineKeyboardRow();
         row1.add(InlineKeyboardButton.builder()

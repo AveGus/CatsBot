@@ -33,6 +33,6 @@ public class UpdateData {
     public void setCallBackDataAndBotState(Optional<CallbackQueryData> callbackData) {
         this.callbackData = callbackData;
 
-        callbackData.ifPresent(callbackQueryData -> this.botState = callbackQueryData.getState());
+        callbackData.ifPresent(callbackQueryData -> this.botState = callbackQueryData.getS());
     }
 }

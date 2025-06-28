@@ -74,9 +74,9 @@ public class CatConsumerImpl implements CatConsumer {
     public void onAllUserCatsRequest(UserIdDto userId) {
         log.info("Received random cat request: {}", userId);
         catService.randomCatFor(userId.getId())
-                .ifPresent(randomCat -> {
+                .ifPresentOrElse(randomCat -> {
                     var toSend = new CatWithUserId(userId.getId(), randomCat.toDto());
                     catProducer.produceRandomCat(toSend);
-                });
+                }, () -> catProducer.produceOutOfRandomCats(userId));
     }
 }
