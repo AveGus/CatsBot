@@ -1,7 +1,10 @@
 package com.avegus.catsservice.service;
 
 import com.avegus.catsservice.model.Cat;
+import com.avegus.catsservice.model.CatView;
+import com.avegus.catsservice.model.id.CatId2UserId;
 import com.avegus.catsservice.repo.CatRepo;
+import com.avegus.catsservice.repo.CatViewRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +20,8 @@ import java.util.UUID;
 @Service
 public class CatServiceImpl implements CatService {
 
-    private final CatRepo repository;
+    private final CatRepo catRepo;
+    private final CatViewRepo catViewRepo;
 
     private final Random rand = new Random();
 
@@ -26,7 +30,7 @@ public class CatServiceImpl implements CatService {
         if (!name.isEmpty() && !fileId.isEmpty()) {
             var cat = Cat.create(name, fileId, creatorUsername, creatorId);
             log.info("Added cat: {}", cat);
-            repository.save(cat);
+            catRepo.save(cat);
         } else {
             log.error("Empty name/file id");
         }
@@ -34,20 +38,20 @@ public class CatServiceImpl implements CatService {
 
     @Override
     public List<Cat> listUserCats(Long creatorId) {
-        return repository.findAllByCreatorId(creatorId);
+        return catRepo.findAllByCreatorId(creatorId);
     }
 
     @Override
     public Optional<Cat> getCat(UUID catId) {
-        return repository.findById(catId);
+        return catRepo.findById(catId);
     }
 
     @Override
     public void deleteCat(UUID catId, Long whoRequestedId) {
-        repository.findById(catId)
+        catRepo.findById(catId)
                 .ifPresent(cat -> {
                     if (cat.getCreatorId().equals(whoRequestedId)) {
-                        repository.deleteById(catId);
+                        catRepo.deleteById(catId);
                     } else {
                         log.warn("User {} tried to delete cat {} without his ownership!", whoRequestedId, catId);
                     }
@@ -58,30 +62,39 @@ public class CatServiceImpl implements CatService {
     @Transactional
     @Override
     public void likeCat(UUID catId) {
-        repository.findById(catId)
+        catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setLikesCount(cat.getLikesCount() + 1);
-                    repository.save(cat);
+                    catRepo.save(cat);
                 });
     }
 
     // Some control of race condition, BIGSERIAL may be better and faster
     @Override
     public void dislikeCat(UUID catId) {
-        repository.findById(catId)
+        catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setDislikesCount(cat.getDislikesCount() + 1);
-                    repository.save(cat);
+                    catRepo.save(cat);
                 });
     }
 
+    @Transactional
     @Override
     public Optional<Cat> randomCatFor(Long whoRequested) {
-        var cats = repository.findAllByCreatorIdNot(whoRequested);
+        var viewedCatsIds = catViewRepo.findAllById_UserId(whoRequested)
+                .stream()
+                .map(CatView::getId)
+                .map(CatId2UserId::getCatId)
+                .toList();
+        var cats = catRepo.findAllByCreatorIdNotAndIdNotIn(whoRequested, viewedCatsIds);
 
-        if (cats.isEmpty()) {
-            return Optional.empty();
-        } else
-            return Optional.of(cats.get(rand.nextInt(cats.size())));
+        // Do stuff with found or return Optional of empty
+        return cats.stream().findFirst().map(cat -> {
+            var cat2Send = cats.get(rand.nextInt(cats.size()));
+            var catViewData = new CatView(whoRequested, cat2Send.getId());
+            catViewRepo.save(catViewData);
+            return cat;
+        });
     }
 }

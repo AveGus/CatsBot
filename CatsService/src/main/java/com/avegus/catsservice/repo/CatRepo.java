@@ -12,5 +12,5 @@ public interface CatRepo extends JpaRepository<Cat, UUID> {
 
     List<Cat> findAllByCreatorId(Long creatorId);
 
-    List<Cat> findAllByCreatorIdNot(Long creatorId);
+    List<Cat> findAllByCreatorIdNotAndIdNotIn(Long creatorId, List<UUID> ids2Exclude);
 }
