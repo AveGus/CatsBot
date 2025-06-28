@@ -21,10 +21,17 @@ public class CatView {
     @EmbeddedId
     private CatId2UserId id;
 
+    @Column(name = "is_like", nullable = false)
+    private Boolean isLike;
+
+    @Column(name = "viewed_times", nullable = false)
+    private Long viewedTimes;
+
     @Column(name = "viewed_at", nullable = false)
     private LocalDateTime viewedAt = LocalDateTime.now();
 
-    public CatView(Long userId, UUID catId) {
+    public CatView(Long userId, UUID catId, Boolean isLike, Long viewedTimes) {
         this.id = new CatId2UserId(userId, catId);
+        this.isLike = isLike;
     }
 }

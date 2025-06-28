@@ -1,5 +1,7 @@
 package com.avegus.catsservice.model.id;
 
+import com.avegus.catsservice.model.Cat;
+import com.avegus.commons.model.CatIdWithUserId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
@@ -20,6 +22,13 @@ public class CatId2UserId implements Serializable {
 
     @Column(name = "cat_id", nullable = false)
     private UUID catId;
+
+    public static CatId2UserId from(CatIdWithUserId catIdWithUserId) {
+        return new CatId2UserId(
+                catIdWithUserId.getUserId(),
+                UUID.fromString(catIdWithUserId.getCatId())
+        );
+    }
 
     @Override
     public boolean equals(Object o) {

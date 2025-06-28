@@ -1,7 +1,6 @@
 package com.avegus.catsservice.service;
 
 import com.avegus.catsservice.model.Cat;
-import com.avegus.catsservice.model.CatView;
 import com.avegus.catsservice.model.id.CatId2UserId;
 import com.avegus.catsservice.repo.CatRepo;
 import com.avegus.catsservice.repo.CatViewRepo;
@@ -9,12 +8,9 @@ import com.avegus.commons.model.CatIdWithUserId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -59,70 +55,51 @@ public class CatServiceImpl implements CatService {
 
     @Override
     public void likeCat(CatIdWithUserId catIdWithUserId) {
-        var viewedCatsIds = catViewRepo.findAllById_UserId(catIdWithUserId.getUserId())
-                .stream()
-                .map(CatView::getId)
-                .map(CatId2UserId::getCatId)
-                .toList();
+        var maybeViewInfo = catViewRepo.findById(CatId2UserId.from(catIdWithUserId));
 
         var catId = UUID.fromString(catIdWithUserId.getCatId());
-        if (viewedCatsIds.contains(catId)) {
-            return;
-        }
-
         catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setLikesCount(cat.getLikesCount() + 1);
                     catRepo.save(cat);
 
-                    catViewRepo.save(new CatView(catIdWithUserId.getUserId(), catId));
+                    maybeViewInfo.ifPresent(viewInfo -> {
+                        viewInfo.setIsLike(true);
+                        viewInfo.setViewedAt(LocalDateTime.now());
+                        viewInfo.setViewedTimes(viewInfo.getViewedTimes() + 1);
+                        catViewRepo.save(viewInfo);
+                    });
                 });
     }
 
     @Override
     public void dislikeCat(CatIdWithUserId catIdWithUserId) {
-        var viewedCatsIds = catViewRepo.findAllById_UserId(catIdWithUserId.getUserId())
-                .stream()
-                .map(CatView::getId)
-                .map(CatId2UserId::getCatId)
-                .toList();
+        var maybeViewInfo = catViewRepo.findById(CatId2UserId.from(catIdWithUserId));
 
         var catId = UUID.fromString(catIdWithUserId.getCatId());
-        if (viewedCatsIds.contains(catId)) {
-            return;
-        }
-
         catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setDislikesCount(cat.getDislikesCount() + 1);
                     catRepo.save(cat);
 
-                    catViewRepo.save(new CatView(catIdWithUserId.getUserId(), catId));
+                    maybeViewInfo.ifPresent(viewInfo -> {
+                        viewInfo.setIsLike(false);
+                        viewInfo.setViewedAt(LocalDateTime.now());
+                        viewInfo.setViewedTimes(viewInfo.getViewedTimes() + 1);
+                        catViewRepo.save(viewInfo);
+                    });
                 });
     }
 
     @Override
     public Optional<Cat> randomCatFor(Long whoRequested) {
-        var viewedCatsIds = catViewRepo.findAllById_UserId(whoRequested)
-                .stream()
-                .map(CatView::getId)
-                .map(CatId2UserId::getCatId)
-                .toList();
-
         // Empty viewedCatsIds on findAllByCreatorIdNotAndIdNotIn gives always empty resultSet .-.
-        List<Cat> cats;
-        if (!viewedCatsIds.isEmpty()) {
-            cats = catRepo.findAllByCreatorIdNotAndIdNotIn(whoRequested, viewedCatsIds);
-        } else {
-            cats = catRepo.findAllByCreatorIdNot(whoRequested);
-        }
-        log.info("Found {} possible random cats for {}, viewed cats: {}", cats.size(), whoRequested, viewedCatsIds.size());
+        var cats = catRepo.findAllByCreatorIdNot(whoRequested)
+                .stream()
+                .sorted(Comparator.comparing(Cat::getCreated).reversed())
+                .toList();
+        log.info("Found {} possible random cats for {}", cats.size(), whoRequested);
 
-        // Do stuff with found or return Optional of empty
-        return cats.stream().findFirst().map(cat -> {
-            var catViewData = new CatView(whoRequested, cat.getId());
-            catViewRepo.save(catViewData);
-            return cat;
-        });
+        return cats.stream().findFirst();
     }
 }
