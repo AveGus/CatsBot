@@ -4,9 +4,9 @@ import com.avegus.commons.model.*;
 
 public interface CatConsumer {
     void onCatAddRequest(AddCatRequest request);
-    void onCatLikeRequest(CatIdDto catId);
-    void onCatDislikeRequest(CatIdDto catId);
-    void onCatDeleteRequest(CatIdWithUserId request);
+    void onCatLikeRequest(CatIdWithUserId catId);
+    void onCatDislikeRequest(CatIdWithUserId catIdWithUserId);
+    void onCatDeleteRequest(CatIdWithUserId catIdWithUserId);
     void onUserCatByCatIdRequest(CatIdWithUserId request);
     void onCatByUserIdRequest(UserIdDto userId);
     void onAllUserCatsRequest(UserIdDto userId);

@@ -1,32 +1,31 @@
 package com.avegus.catsservice.service;
 
 import com.avegus.catsservice.model.Cat;
+import com.avegus.catsservice.model.id.CatId2UserId;
 import com.avegus.catsservice.repo.CatRepo;
+import com.avegus.catsservice.repo.CatViewRepo;
+import com.avegus.commons.model.CatIdWithUserId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Slf4j
 @Service
 public class CatServiceImpl implements CatService {
 
-    private final CatRepo repository;
-
-    private final Random rand = new Random();
+    private final CatRepo catRepo;
+    private final CatViewRepo catViewRepo;
 
     @Override
     public void addCat(String name, String fileId, String creatorUsername, Long creatorId) {
         if (!name.isEmpty() && !fileId.isEmpty()) {
             var cat = Cat.create(name, fileId, creatorUsername, creatorId);
             log.info("Added cat: {}", cat);
-            repository.save(cat);
+            catRepo.save(cat);
         } else {
             log.error("Empty name/file id");
         }
@@ -34,54 +33,73 @@ public class CatServiceImpl implements CatService {
 
     @Override
     public List<Cat> listUserCats(Long creatorId) {
-        return repository.findAllByCreatorId(creatorId);
+        return catRepo.findAllByCreatorId(creatorId);
     }
 
     @Override
     public Optional<Cat> getCat(UUID catId) {
-        return repository.findById(catId);
+        return catRepo.findById(catId);
     }
 
     @Override
     public void deleteCat(UUID catId, Long whoRequestedId) {
-        repository.findById(catId)
+        catRepo.findById(catId)
                 .ifPresent(cat -> {
                     if (cat.getCreatorId().equals(whoRequestedId)) {
-                        repository.deleteById(catId);
+                        catRepo.deleteById(catId);
                     } else {
                         log.warn("User {} tried to delete cat {} without his ownership!", whoRequestedId, catId);
                     }
                 });
     }
 
-    // Some control of race condition, BIGSERIAL may be better and faster
-    @Transactional
     @Override
-    public void likeCat(UUID catId) {
-        repository.findById(catId)
+    public void likeCat(CatIdWithUserId catIdWithUserId) {
+        var maybeViewInfo = catViewRepo.findById(CatId2UserId.from(catIdWithUserId));
+
+        var catId = UUID.fromString(catIdWithUserId.getCatId());
+        catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setLikesCount(cat.getLikesCount() + 1);
-                    repository.save(cat);
+                    catRepo.save(cat);
+
+                    maybeViewInfo.ifPresent(viewInfo -> {
+                        viewInfo.setIsLike(true);
+                        viewInfo.setViewedAt(LocalDateTime.now());
+                        viewInfo.setViewedTimes(viewInfo.getViewedTimes() + 1);
+                        catViewRepo.save(viewInfo);
+                    });
                 });
     }
 
-    // Some control of race condition, BIGSERIAL may be better and faster
     @Override
-    public void dislikeCat(UUID catId) {
-        repository.findById(catId)
+    public void dislikeCat(CatIdWithUserId catIdWithUserId) {
+        var maybeViewInfo = catViewRepo.findById(CatId2UserId.from(catIdWithUserId));
+
+        var catId = UUID.fromString(catIdWithUserId.getCatId());
+        catRepo.findById(catId)
                 .ifPresent(cat -> {
                     cat.setDislikesCount(cat.getDislikesCount() + 1);
-                    repository.save(cat);
+                    catRepo.save(cat);
+
+                    maybeViewInfo.ifPresent(viewInfo -> {
+                        viewInfo.setIsLike(false);
+                        viewInfo.setViewedAt(LocalDateTime.now());
+                        viewInfo.setViewedTimes(viewInfo.getViewedTimes() + 1);
+                        catViewRepo.save(viewInfo);
+                    });
                 });
     }
 
     @Override
     public Optional<Cat> randomCatFor(Long whoRequested) {
-        var cats = repository.findAllByCreatorIdNot(whoRequested);
+        // Empty viewedCatsIds on findAllByCreatorIdNotAndIdNotIn gives always empty resultSet .-.
+        var cats = catRepo.findAllByCreatorIdNot(whoRequested)
+                .stream()
+                .sorted(Comparator.comparing(Cat::getCreated).reversed())
+                .toList();
+        log.info("Found {} possible random cats for {}", cats.size(), whoRequested);
 
-        if (cats.isEmpty()) {
-            return Optional.empty();
-        } else
-            return Optional.of(cats.get(rand.nextInt(cats.size())));
+        return cats.stream().findFirst();
     }
 }

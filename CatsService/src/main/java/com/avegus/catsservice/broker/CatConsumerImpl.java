@@ -28,16 +28,18 @@ public class CatConsumerImpl implements CatConsumer {
 
     @KafkaListener(topics = "${topics.cat.like}", groupId = "cat-service")
     @Override
-    public void onCatLikeRequest(CatIdDto catId) {
-        log.info("Received like request for catId: {}", catId);
-        catService.likeCat(UUID.fromString(catId.getId()));
+    public void onCatLikeRequest(CatIdWithUserId catIdWithUserId) {
+        log.info("Received like request for catId: {}", catIdWithUserId.getCatId());
+        catService.likeCat(catIdWithUserId);
+        sendRandomCat(catIdWithUserId.getUserId());
     }
 
     @KafkaListener(topics = "${topics.cat.dislike}", groupId = "cat-service")
     @Override
-    public void onCatDislikeRequest(CatIdDto catId) {
-        log.info("Received dislike request for catId: {}", catId);
-        catService.dislikeCat(UUID.fromString(catId.getId()));
+    public void onCatDislikeRequest(CatIdWithUserId catIdWithUserId) {
+        log.info("Received dislike request for catId: {}", catIdWithUserId.getCatId());
+        catService.dislikeCat(catIdWithUserId);
+        sendRandomCat(catIdWithUserId.getUserId());
     }
 
     @KafkaListener(topics = "${topics.cat.delete}", groupId = "cat-service")
@@ -73,10 +75,14 @@ public class CatConsumerImpl implements CatConsumer {
     @Override
     public void onAllUserCatsRequest(UserIdDto userId) {
         log.info("Received random cat request: {}", userId);
-        catService.randomCatFor(userId.getId())
-                .ifPresent(randomCat -> {
-                    var toSend = new CatWithUserId(userId.getId(), randomCat.toDto());
+        sendRandomCat(userId.getId());
+    }
+
+    private void sendRandomCat(Long userId) {
+        catService.randomCatFor(userId)
+                .ifPresentOrElse(randomCat -> {
+                    var toSend = new CatWithUserId(userId, randomCat.toDto());
                     catProducer.produceRandomCat(toSend);
-                });
+                }, () -> catProducer.produceOutOfRandomCats(new UserIdDto(userId)));
     }
 }

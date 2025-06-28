@@ -12,4 +12,5 @@ public class Captions {
     public static final String PHOTO_SAVED_ASK_NAME = "Фото сохранено, теперь напиши имя котика";
     public static final String PHOTO_UPLOAD_DECISION_RETRY = "Ну так что, я сохраняю фотографию, или попробуешь еще раз?";
     public static final String CAT_SAVED = "Котик %s сохранен";
+    public static final String OUT_OF_RANDOM_CATS = "Вы просмотрели всех котиков других пользователей, пока не добавили новых можете посмотреть на своих :)";
 }
